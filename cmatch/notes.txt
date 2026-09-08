@@ -1,0 +1,3 @@
+request user priority: cost or latency?
+
+enrich with coordinates
