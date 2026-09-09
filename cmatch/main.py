@@ -194,7 +194,7 @@ def main():
                                 4326
                             )::geography,
                             ST_SetSRID(
-                                ST_MakePoint(43.6834, -79.7663),
+                                ST_MakePoint({user_lng}, {user_lat}),
                                 4326
                             )::geography
                         ) / 1000 AS distance_km
