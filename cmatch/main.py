@@ -210,10 +210,10 @@ def main():
                         instances.memory_size >= {user_constraints['resources']['memory_gb']} AND
                         instances.vcpu >= {user_constraints['resources']['cpu_cores']}
                     ORDER BY {distance_or_cost(user_constraints['preference'])} ASC
-                    LIMIT 1
              )
              select * from priced_instances
                 where calculated_price <= {budget_per_hour}
+                LIMIT 1
              ;
             """
             print(sql_command)
