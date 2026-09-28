@@ -39,6 +39,8 @@ def main():
     #get user coordinates using IP address
     g = geocoder.ip('me')
     coordinates = g.latlng
+    user_lat = coordinates[0]
+    user_lng = coordinates[1]
 
     none_list = []
     user_inputs = []
@@ -168,6 +170,7 @@ def main():
 
         result = []
         query_count = int(0)
+        #We are using '2026-06-15 13:00:00' as MOCK DATA
         while len(result) == 0:
             sql_command = f"""
             WITH priced_instances AS (
@@ -175,9 +178,9 @@ def main():
                         instances.cloud_service_provider,
                         instances.instance_type,
                         CASE
-                    	  WHEN instances.storage_size = 0 THEN (({float(user_constraints['resources']['storage_gb'])} / 720.0 * {hours} * ebs_price_relation.price_per_gb_per_month::numeric) + spots.on_demand_price::numeric)
-    				      WHEN instances.storage_size is NULL THEN (({float(user_constraints['resources']['storage_gb'])} / 720.0 * {hours} * ebs_price_relation.price_per_gb_per_month::numeric) + spots.on_demand_price::numeric)
-                          ELSE spots.on_demand_price::numeric
+                    	  WHEN instances.storage_size = 0 THEN (({float(user_constraints['resources']['storage_gb'])} / 720.0 * {hours} * ebs_price_relation.price_per_gb_per_month::numeric) + spots.spot_price::numeric)
+    				      WHEN instances.storage_size is NULL THEN (({float(user_constraints['resources']['storage_gb'])} / 720.0 * {hours} * ebs_price_relation.price_per_gb_per_month::numeric) + spots.spot_price::numeric)
+                          ELSE spots.spot_price::numeric
                         END AS calculated_price,
                         CASE
                     	  WHEN instances.storage_size = 0 THEN (({float(user_constraints['resources']['storage_gb'])} / 720.0 * {hours} * ebs_price_relation.price_per_gb_per_month::numeric))
@@ -209,10 +212,12 @@ def main():
                     WHERE
                         instances.memory_size >= {user_constraints['resources']['memory_gb']} AND
                         instances.vcpu >= {user_constraints['resources']['cpu_cores']}
-                    ORDER BY {distance_or_cost(user_constraints['preference'])} ASC
+                        AND spots.time = '2026-06-15 13:00:00'
+                        
              )
              select * from priced_instances
                 where calculated_price <= {budget_per_hour}
+                ORDER BY {distance_or_cost(user_constraints['preference'])} ASC
                 LIMIT 1
              ;
             """
